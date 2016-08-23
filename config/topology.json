@@ -1,0 +1,34 @@
+{
+  "devices": [
+    "alpha",
+    "beta",
+    "gamma",
+    "delta"
+  ],
+  "edges": [
+    {
+      "a": "alpha",
+      "z": "beta",
+      "metric": 10,
+      "gbps": 10
+    },
+    {
+      "a": "beta",
+      "z": "gamma",
+      "metric": 10,
+      "gbps": 10
+    },
+    {
+      "a": "gamma",
+      "z": "delta",
+      "metric": 100,
+      "gbps": 100
+    },
+    {
+      "a": "alpha",
+      "z": "gamma",
+      "metric": 100,
+      "gbps": 100
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "entries": [
+    {
+      "a": "alpha",
+      "z": "beta",
+      "gbps": 10
+    },
+    {
+      "a": "beta",
+      "z": "alpha",
+      "gbps": 100
+    },
+    {
+      "a": "alpha",
+      "z": "delta",
+      "gbps": 5.5
+    },
+    {
+      "a": "delta",
+      "z": "alpha",
+      "gbps": 9.5
+    }
+  ]
+}
