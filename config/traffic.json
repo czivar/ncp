@@ -3,22 +3,22 @@
     {
       "a": "alpha",
       "z": "beta",
-      "gbps": 10
+      "mbps": 10
     },
     {
       "a": "beta",
       "z": "alpha",
-      "gbps": 100
+      "mbps": 100
     },
     {
       "a": "alpha",
       "z": "delta",
-      "gbps": 5.5
+      "mbps": 5.5
     },
     {
       "a": "delta",
       "z": "alpha",
-      "gbps": 9.5
+      "mbps": 9.5
     }
   ]
 }

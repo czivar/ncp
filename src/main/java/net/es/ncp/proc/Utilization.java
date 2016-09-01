@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class Utilization {
 
         DijkstraShortestPath<String, Edge> alg = new DijkstraShortestPath<>(graph, wtTransformer);
 
-
+        List<String> reports = new ArrayList<>();
         Map<Edge, Long> utilization = new HashMap<>();
 
         traffic.getEntries().stream().forEach(entry -> {
@@ -57,16 +58,19 @@ public class Utilization {
                         utilization.put(edge, entry.getMbps());
                     }
                 }
-                log.info(entry.getA() + " <===> " + entry.getZ() + ": " + pathString);
+                reports.add(entry.getA() + " <===> " + entry.getZ() + ": " + pathString);
 
             }
         });
 
         utilization.keySet().stream().forEach(edge -> {
             Long mbps = utilization.get(edge);
-            log.info(edge.getA() + " -- " + edge.getZ() + " ("+edge.getName()+") : " + mbps);
-
+            reports.add(edge.getA() + " -- " + edge.getZ() + " ("+edge.getName()+") : " + mbps);
         });
+        String report = String.join("\n", reports);
+        log.info("\n"+report);
+
+
 
     }
 
