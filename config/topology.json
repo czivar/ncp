@@ -1,34 +1,30 @@
 {
-  "devices": [
+  "nodes": [
     "alpha",
-    "beta",
-    "gamma",
-    "delta"
+    "beta"
   ],
   "edges": [
     {
       "a": "alpha",
-      "z": "beta",
-      "metric": 10,
-      "gbps": 10
+      "latency": 1,
+      "z_addr": "10.0.0.2",
+      "a_addr": "10.0.0.1",
+      "name": "xe-0/1/1 - xe-1/2/1",
+      "isis_cost": 100030,
+      "mbps": 10000,
+      "z": "beta"
     },
     {
       "a": "beta",
-      "z": "gamma",
-      "metric": 10,
-      "gbps": 10
-    },
-    {
-      "a": "gamma",
-      "z": "delta",
-      "metric": 100,
-      "gbps": 100
-    },
-    {
-      "a": "alpha",
-      "z": "gamma",
-      "metric": 100,
-      "gbps": 100
+      "latency": 1,
+      "z_addr": "10.0.0.1",
+      "a_addr": "10.0.0.1",
+      "name": "xe-1/2/0 - xe-0/1/1",
+      "isis_cost": 100030,
+      "mbps": 10000,
+      "z": "alpha"
     }
+
+
   ]
 }

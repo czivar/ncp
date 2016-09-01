@@ -1,4 +1,4 @@
-package net.es.ncp.in;
+package net.es.ncp.topo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Entry {
+public class Edge {
     private String a;
     private String z;
+    private String name;
+    private Long metric;
     private Long mbps;
 }

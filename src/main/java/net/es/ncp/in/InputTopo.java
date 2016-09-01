@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.es.ncp.topo.Edge;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Topology {
-    private List<Edge> edges;
-    private List<String> devices;
+public class InputTopo {
+    private List<InputEdge> edges;
+    private List<String> nodes;
 }

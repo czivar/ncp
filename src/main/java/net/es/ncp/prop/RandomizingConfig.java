@@ -3,8 +3,6 @@ package net.es.ncp.prop;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import net.es.ncp.topo.EdgeMetric;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,14 +13,18 @@ import java.io.File;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConfigurationProperties(prefix = "input")
+@ConfigurationProperties(prefix = "randomTopo")
 
-public class InputConfig {
-    private File topology;
-    private Boolean randomTopology;
-    private EdgeMetric metric;
+public class RandomizingConfig {
 
-    private File traffic;
-    private Boolean randomTraffic;
+    private Integer numNodes;
+    private Integer maxMetric;
+
+    private Long minLinkMbps;
+    private Long maxLinkMbps;
+    private Integer maxNodeLinks;
+
+    private Long maxTrafficMbps;
+
 
 }

@@ -9,8 +9,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Entry {
+public class InputEdge {
+    private String name;
     private String a;
     private String z;
+    private String a_addr;
+    private String z_addr;
+    private Long isis_cost;
+    private Long latency;
     private Long mbps;
 }
