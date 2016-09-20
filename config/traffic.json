@@ -1,24 +1,27 @@
 {
-  "entries": [
-    {
-      "a": "alpha",
-      "z": "beta",
-      "mbps": 10
-    },
-    {
-      "a": "beta",
-      "z": "alpha",
-      "mbps": 100
-    },
-    {
-      "a": "alpha",
-      "z": "delta",
-      "mbps": 5.5
-    },
-    {
-      "a": "delta",
-      "z": "alpha",
-      "mbps": 9.5
-    }
-  ]
+  "entries": {
+    "2016-10-01T00:00:00": [
+      {
+        "a": "alpha",
+        "z": "beta",
+        "mbps": 10
+      },
+      {
+        "a": "beta",
+        "z": "alpha",
+        "mbps": 100
+      },
+      {
+        "a": "alpha",
+        "z": "delta",
+        "mbps": 5.5
+      },
+      {
+        "a": "delta",
+        "z": "alpha",
+        "mbps": 9.5
+      }
+    ]
+  }
+
 }

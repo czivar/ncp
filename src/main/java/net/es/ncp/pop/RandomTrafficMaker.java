@@ -9,9 +9,7 @@ import net.es.ncp.topo.Topology;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -24,19 +22,21 @@ public class RandomTrafficMaker {
     public Traffic generate(List<String> nodes) {
 
         Traffic traffic = Traffic.builder()
-                .entries(new ArrayList<>())
+                .entries(new HashMap<>())
                 .build();
 
         Random r = new Random();
         Long range = config.getMaxTrafficMbps();
+        Date date = new Date();
+        traffic.getEntries().put(date, new ArrayList<>());
 
 
-        nodes.stream().forEach(n1 -> {
+        nodes.forEach(n1 -> {
             nodes.stream().filter(n2 -> !n2.equals(n1)).forEach(n2 -> {
                 long mbps = (long)(r.nextDouble() * range);
 
                 Entry e = Entry.builder().a(n1).z(n2).mbps(mbps).build();
-                traffic.getEntries().add(e);
+                traffic.getEntries().get(date).add(e);
 
             });
         });

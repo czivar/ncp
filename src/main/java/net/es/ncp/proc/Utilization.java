@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -33,43 +30,53 @@ public class Utilization {
         Graph<String, Edge> graph = new DirectedSparseMultigraph<>();
 
         Transformer<Edge, Double> wtTransformer = edge -> edge.getMetric().doubleValue();
-        topo.getDevices().stream().forEach(graph::addVertex);
+        topo.getDevices().forEach(graph::addVertex);
 
-        topo.getEdges().stream().forEach(e -> {
+        topo.getEdges().forEach(e -> {
             graph.addEdge(e, e.getA(), e.getZ(), EdgeType.DIRECTED);
         });
 
         DijkstraShortestPath<String, Edge> alg = new DijkstraShortestPath<>(graph, wtTransformer);
 
         List<String> reports = new ArrayList<>();
-        Map<Edge, Long> utilization = new HashMap<>();
+        Map<Date, Map<Edge, Long>> utilizations = new HashMap<>();
 
-        traffic.getEntries().stream().forEach(entry -> {
-            List<Edge> path = alg.getPath(entry.getA(), entry.getZ());
+        traffic.getEntries().keySet().forEach(date -> {
 
-            if (path.size() > 0) {
-                String pathString = path.get(0).getA();
-                for (Edge edge : path) {
-                    pathString += " - " + edge.getZ();
+            Map<Edge, Long> utilization = new HashMap<>();
+            utilizations.put(date, utilization);
 
-                    if (utilization.containsKey(edge)) {
-                        utilization.put(edge, utilization.get(edge) + entry.getMbps());
-                    } else {
-                        utilization.put(edge, entry.getMbps());
+            traffic.getEntries().get(date).forEach(entry -> {
+                List<Edge> path = alg.getPath(entry.getA(), entry.getZ());
+
+                if (path.size() > 0) {
+                    String pathString = path.get(0).getA();
+                    for (Edge edge : path) {
+                        pathString += " - " + edge.getZ();
+
+                        if (utilization.containsKey(edge)) {
+                            utilization.put(edge, utilization.get(edge) + entry.getMbps());
+                        } else {
+                            utilization.put(edge, entry.getMbps());
+                        }
                     }
+                    reports.add(entry.getA() + " <===> " + entry.getZ() + ": " + pathString);
+
                 }
-                reports.add(entry.getA() + " <===> " + entry.getZ() + ": " + pathString);
-
-            }
+            });
         });
 
-        utilization.keySet().stream().forEach(edge -> {
-            Long mbps = utilization.get(edge);
-            reports.add(edge.getA() + " -- " + edge.getZ() + " ("+edge.getName()+") : " + mbps);
+        utilizations.keySet().forEach(date -> {
+            reports.add("report for: "+date);
+            Map<Edge, Long> utilization = utilizations.get(date);
+            utilization.keySet().forEach(edge -> {
+                Long mbps = utilization.get(edge);
+                reports.add(edge.getA() + " -- " + edge.getZ() + " (" + edge.getName() + ") : " + mbps);
+            });
         });
+
         String report = String.join("\n", reports);
-        log.info("\n"+report);
-
+        log.info("\n" + report);
 
 
     }

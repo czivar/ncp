@@ -23,13 +23,13 @@ public class RandomTopoMaker {
     public Topology generate() {
         Topology topology = Topology.builder().devices(new ArrayList<>()).edges(new ArrayList<>()).build();
 
-        for (int i= 0; i < config.getNumNodes(); i++) {
+        for (int i = 0; i < config.getNumNodes(); i++) {
             String name = RandomStringUtils.randomAlphabetic(8);
             topology.getDevices().add(name);
         }
         Random r = new Random();
 
-        for (int i= 0; i < config.getNumNodes(); i++) {
+        for (int i = 0; i < config.getNumNodes(); i++) {
             Integer numLinks = r.nextInt(config.getMaxNodeLinks()) + 1;
 
             for (int link = 0; link < numLinks; link++) {
@@ -47,14 +47,14 @@ public class RandomTopoMaker {
 
                 String a = topology.getDevices().get(i);
                 String z = topology.getDevices().get(neighbor);
-                Edge e = Edge.builder().a(a).z(z).metric(metric.longValue()).mbps(mbps.longValue()).build();
+                String name = a + " <-> " + z;
+                Edge e = Edge.builder().a(a).z(z).name(name).metric(metric.longValue()).mbps(mbps.longValue()).build();
 
                 topology.getEdges().add(e);
 
 
             }
         }
-
 
 
         return topology;
