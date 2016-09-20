@@ -26,5 +26,6 @@ public class RandomizingConfig {
 
     private Long maxTrafficMbps;
 
+    private Integer timeslices;
 
 }

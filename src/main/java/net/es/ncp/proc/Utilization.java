@@ -36,6 +36,8 @@ public class Utilization {
             graph.addEdge(e, e.getA(), e.getZ(), EdgeType.DIRECTED);
         });
 
+        Map<String, List<Edge>> cache = new HashMap<>();
+
         DijkstraShortestPath<String, Edge> alg = new DijkstraShortestPath<>(graph, wtTransformer);
 
         List<String> reports = new ArrayList<>();
@@ -47,7 +49,22 @@ public class Utilization {
             utilizations.put(date, utilization);
 
             traffic.getEntries().get(date).forEach(entry -> {
-                List<Edge> path = alg.getPath(entry.getA(), entry.getZ());
+                List<Edge> path;
+
+                String az = entry.getA()+"-"+entry.getZ();
+                if (cache.containsKey(az)) {
+                    long startTime = System.nanoTime();
+                    path = cache.get(az);
+                    long endTime = System.nanoTime();
+                    // log.info("Cache lookup took " + (endTime - startTime) + " usec");
+
+                } else {
+                    long startTime = System.nanoTime();
+                    path = alg.getPath(entry.getA(), entry.getZ());
+                    long endTime = System.nanoTime();
+                    // log.info("Normal pathfinding took " + (endTime - startTime) + " usec");
+                    cache.put(az, path);
+                }
 
                 if (path.size() > 0) {
                     String pathString = path.get(0).getA();
