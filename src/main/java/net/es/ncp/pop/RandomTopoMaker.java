@@ -48,7 +48,7 @@ public class RandomTopoMaker {
                 String a = topology.getDevices().get(i);
                 String z = topology.getDevices().get(neighbor);
                 String name = a + " <-> " + z;
-                Edge e = Edge.builder().a(a).z(z).name(name).metric(metric.longValue()).mbps(mbps.longValue()).build();
+                Edge e = Edge.builder().a(a).z(z).name(name).metric(metric.floatValue()).mbps(mbps.longValue()).build();
 
                 topology.getEdges().add(e);
 

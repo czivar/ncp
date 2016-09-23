@@ -15,7 +15,7 @@ public class InputEdge {
     private String z;
     private String a_addr;
     private String z_addr;
-    private Long isis_cost;
-    private Long latency;
+    private Float isis_cost;
+    private Float latency;
     private Long mbps;
 }

@@ -1,4 +1,5 @@
-package net.es.ncp.topo;
+package net.es.ncp.viz;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Edge {
-    private String a;
-    private String z;
-    private String name;
-    private Float metric;
-    private Long mbps;
+public class VizEdge {
+    String to;
+    String from;
+    Integer value;
+    String color;
 }

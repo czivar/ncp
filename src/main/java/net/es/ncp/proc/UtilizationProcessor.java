@@ -5,10 +5,14 @@ import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import lombok.extern.slf4j.Slf4j;
+import net.es.ncp.report.PathReport;
+import net.es.ncp.report.Reporter;
+import net.es.ncp.report.UtilizationReport;
 import net.es.ncp.topo.Edge;
 import net.es.ncp.topo.Topology;
 import net.es.ncp.in.Traffic;
 import net.es.ncp.pop.Input;
+import net.es.ncp.viz.VizExporter;
 import org.apache.commons.collections15.Transformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +22,15 @@ import java.util.*;
 
 @Service
 @Slf4j
-public class Utilization {
+public class UtilizationProcessor {
     @Autowired
     private Input input;
+
+    @Autowired
+    private VizExporter exporter;
+
+    @Autowired
+    private Reporter reporter;
 
     @PostConstruct
     public void process() {
@@ -40,61 +50,62 @@ public class Utilization {
 
         DijkstraShortestPath<String, Edge> alg = new DijkstraShortestPath<>(graph, wtTransformer);
 
-        List<String> reports = new ArrayList<>();
-        Map<Date, Map<Edge, Long>> utilizations = new HashMap<>();
+
+        PathReport pathReport = PathReport.builder().paths(new HashMap<>()).build();
+        Map<Date, Map<Edge, Long>> utilizationsByDate = new HashMap<>();
 
         traffic.getEntries().keySet().forEach(date -> {
 
             Map<Edge, Long> utilization = new HashMap<>();
-            utilizations.put(date, utilization);
+            utilizationsByDate.put(date, utilization);
 
             traffic.getEntries().get(date).forEach(entry -> {
                 List<Edge> path;
 
-                String az = entry.getA()+"-"+entry.getZ();
+                String az = entry.getA() + "-" + entry.getZ();
                 if (cache.containsKey(az)) {
-                    long startTime = System.nanoTime();
                     path = cache.get(az);
-                    long endTime = System.nanoTime();
-                    // log.info("Cache lookup took " + (endTime - startTime) + " usec");
 
                 } else {
-                    long startTime = System.nanoTime();
                     path = alg.getPath(entry.getA(), entry.getZ());
-                    long endTime = System.nanoTime();
-                    // log.info("Normal pathfinding took " + (endTime - startTime) + " usec");
                     cache.put(az, path);
                 }
 
                 if (path.size() > 0) {
-                    String pathString = path.get(0).getA();
                     for (Edge edge : path) {
-                        pathString += " - " + edge.getZ();
-
                         if (utilization.containsKey(edge)) {
                             utilization.put(edge, utilization.get(edge) + entry.getMbps());
                         } else {
                             utilization.put(edge, entry.getMbps());
                         }
                     }
-                    reports.add(entry.getA() + " <===> " + entry.getZ() + ": " + pathString);
-
+                    pathReport.getPaths().put(az, path);
                 }
             });
         });
 
-        utilizations.keySet().forEach(date -> {
-            reports.add("report for: "+date);
-            Map<Edge, Long> utilization = utilizations.get(date);
-            utilization.keySet().forEach(edge -> {
-                Long mbps = utilization.get(edge);
-                reports.add(edge.getA() + " -- " + edge.getZ() + " (" + edge.getName() + ") : " + mbps);
-            });
+        List<UtilizationReport> reports = new ArrayList<>();
+
+        utilizationsByDate.keySet().forEach(date -> {
+            Map<Edge, Long> utilization = utilizationsByDate.get(date);
+            exporter.export(date, utilization);
+
+            UtilizationReport report = UtilizationReport.builder()
+                    .date(date)
+                    .edges(new HashMap<>())
+                    .build();
+            reports.add(report);
+
+
+            for (Edge edge : utilization.keySet()) {
+                String az = edge.getA() +" - "+ edge.getZ();
+                Long bw = utilization.get(edge);
+                report.getEdges().put(az, bw);
+            }
+
         });
 
-        String report = String.join("\n", reports);
-        log.info("\n" + report);
-
+        reporter.saveReports(reports, pathReport);
 
     }
 

@@ -1,18 +1,17 @@
-package net.es.ncp.topo;
+package net.es.ncp.viz;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Edge {
-    private String a;
-    private String z;
-    private String name;
-    private Float metric;
-    private Long mbps;
+public class VizGraph {
+    List<VizNode> nodes;
+    List<VizEdge> edges;
 }
