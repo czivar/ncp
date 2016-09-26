@@ -15,4 +15,8 @@ public class VizEdge {
     String from;
     Integer value;
     String color;
+    String arrows;
+    Boolean arrowStrikethrough;
+    String title;
+    String label;
 }

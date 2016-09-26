@@ -13,5 +13,6 @@ public class VizNode {
     String id;
     String label;
     Integer value;
+    String title;
 
 }

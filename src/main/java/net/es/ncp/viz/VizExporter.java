@@ -13,6 +13,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.*;
 import java.util.List;
 
@@ -60,8 +62,12 @@ public class VizExporter {
             this.makeNode(z, seenNodes, nodeIngresses, g);
 
             String rgb = this.toWeb(ecm.getColor(value.doubleValue()));
+            String title = shorten(value.doubleValue());
 
-            VizEdge ve = VizEdge.builder().from(a).to(z).value(value.intValue()).color(rgb).build();
+            VizEdge ve = VizEdge.builder()
+                    .from(a).to(z).title(title).label(title).value(value.intValue())
+                    .arrows("to").arrowStrikethrough(false).color(rgb)
+                    .build();
             g.getEdges().add(ve);
 
         });
@@ -69,7 +75,7 @@ public class VizExporter {
         ObjectMapper mapper = new ObjectMapper();
 
         String filename = config.getOutputFilename().replace("%date", date.toString());
-        filename = config.getOutputDir()+"/"+filename;
+        filename = config.getOutputDir() + "/" + filename;
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filename), g);
@@ -87,8 +93,9 @@ public class VizExporter {
         if (nodeIngresses.keySet().contains(node)) {
             ingress = nodeIngresses.get(node);
         }
+        String title = shorten(ingress);
 
-        VizNode n = VizNode.builder().id(node).label(node).value(ingress.intValue()).build();
+        VizNode n = VizNode.builder().id(node).label(node).title(title).value(ingress.intValue()).build();
         g.getNodes().add(n);
     }
 
@@ -96,6 +103,27 @@ public class VizExporter {
         String rgb = Integer.toHexString(c.getRGB());
         rgb = "#" + rgb.substring(2, rgb.length());
         return rgb;
+    }
+
+    private String shorten(Double mbps) {
+
+        BigDecimal bd = new BigDecimal(mbps);
+        bd = bd.round(new MathContext(3));
+        double rounded = bd.doubleValue();
+
+        if (mbps < 1000.0) {
+            return rounded + "M";
+        } else if (mbps < 1000.0 * 1000) {
+            return rounded / 1000 + "G";
+        } else if (mbps < 1000.0 * 1000000) {
+            return rounded / 1000000 + "T";
+        } else if (mbps < 1000.0 * 1000000000) {
+            return rounded / 1000000000 + "P";
+        } else {
+            return ">1000P";
+        }
+
+
     }
 
 }
