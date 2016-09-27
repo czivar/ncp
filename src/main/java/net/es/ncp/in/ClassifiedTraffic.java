@@ -1,19 +1,19 @@
-package net.es.ncp.report;
+package net.es.ncp.in;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.es.ncp.topo.Edge;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UtilizationReport {
-    private Date date;
-    private Map<Edge, Long> edges;
+public class ClassifiedTraffic {
+    private Traffic traffic;
+    private String classifier;
 }

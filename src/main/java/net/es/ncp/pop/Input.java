@@ -3,12 +3,13 @@ package net.es.ncp.pop;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.es.ncp.in.ClassifiedTraffic;
 import net.es.ncp.in.InputEdge;
 import net.es.ncp.in.InputTopo;
+import net.es.ncp.in.InputTraffic;
 import net.es.ncp.topo.Edge;
 import net.es.ncp.topo.EdgeMetric;
 import net.es.ncp.topo.Topology;
-import net.es.ncp.in.Traffic;
 import net.es.ncp.prop.InputConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class Input {
     private InputConfig inputConfig;
 
     private Topology topology;
-    private Traffic traffic;
+    private InputTraffic traffic;
 
     @Autowired
     private RandomTrafficMaker randomTrafficMaker;
@@ -63,21 +64,12 @@ public class Input {
             }
         }
 
-
-
         if (inputConfig.getRandomTraffic()) {
             traffic = randomTrafficMaker.generate(topology.getDevices());
         } else {
             File trafficFile = inputConfig.getTraffic();
-            traffic = mapper.readValue(trafficFile, Traffic.class);
+            traffic = mapper.readValue(trafficFile, InputTraffic.class);
         }
-
-        for (Edge e: topology.getEdges()) {
-            log.info(e.getName());
-        }
-
-
-
 
 
     }

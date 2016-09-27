@@ -1,34 +1,29 @@
 package net.es.ncp.viz;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mines.jtk.awt.ColorMap;
-import net.es.ncp.prop.VizConfig;
+
+import net.es.ncp.report.UtilizationReport;
 import net.es.ncp.topo.Edge;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.xml.DocumentDefaultsDefinition;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class VizExporter {
-    @Autowired
-    private VizConfig config;
 
-    public void export(Date date, Map<Edge, Long> utilization) {
+    public VizGraph vizGraph(UtilizationReport report) {
+
         VizGraph g = VizGraph.builder().edges(new ArrayList<>()).nodes(new ArrayList<>()).build();
 
         List<String> seenNodes = new ArrayList<>();
         Double minBw = Double.MAX_VALUE;
         Double maxBw = 0.0;
+        Map<Edge, Long> utilization = report.getEdges();
 
         Map<String, Double> nodeIngresses = new HashMap<>();
         for (Edge edge : utilization.keySet()) {
@@ -50,9 +45,18 @@ public class VizExporter {
             }
         }
 
+        List<Edge> sorted = utilization.entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getValue))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        List<Edge> top40 = sorted.subList(sorted.size()-40, sorted.size());
+
+
 
         java.awt.image.IndexColorModel icm = ColorMap.JET;
         ColorMap ecm = new ColorMap(minBw, maxBw, icm);
+
+
 
         utilization.keySet().forEach(edge -> {
             Long value = utilization.get(edge);
@@ -63,25 +67,20 @@ public class VizExporter {
 
             String rgb = this.toWeb(ecm.getColor(value.doubleValue()));
             String title = shorten(value.doubleValue());
+            String label= "";
+            if (top40.contains(edge)) {
+                label = title;
+            }
 
             VizEdge ve = VizEdge.builder()
-                    .from(a).to(z).title(title).label(title).value(value.intValue())
+                    .from(a).to(z).title(title).label(label).value(value.intValue())
                     .arrows("to").arrowStrikethrough(false).color(rgb)
                     .build();
             g.getEdges().add(ve);
 
         });
+        return g;
 
-        ObjectMapper mapper = new ObjectMapper();
-
-        String filename = config.getOutputFilename().replace("%date", date.toString());
-        filename = config.getOutputDir() + "/" + filename;
-
-        try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filename), g);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void makeNode(String node, List<String> seenNodes, Map<String, Double> nodeIngresses, VizGraph g) {

@@ -5,12 +5,12 @@ import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import lombok.extern.slf4j.Slf4j;
+import net.es.ncp.in.InputTraffic;
+import net.es.ncp.in.Traffic;
 import net.es.ncp.report.PathReport;
-import net.es.ncp.report.Reporter;
 import net.es.ncp.report.UtilizationReport;
 import net.es.ncp.topo.Edge;
 import net.es.ncp.topo.Topology;
-import net.es.ncp.in.Traffic;
 import net.es.ncp.pop.Input;
 import net.es.ncp.viz.VizExporter;
 import org.apache.commons.collections15.Transformer;
@@ -29,13 +29,41 @@ public class UtilizationProcessor {
     @Autowired
     private VizExporter exporter;
 
-    @Autowired
-    private Reporter reporter;
+    private PathReport pathReport;
+
+    public PathReport getPathReport() {
+        return pathReport;
+    }
+
+    private Map<String, Map<Date, UtilizationReport>> utilizationReports;
+
+    public Optional<UtilizationReport> getReport(String classifier, Date date) {
+        if (utilizationReports.keySet().contains(classifier)) {
+            Map<Date, UtilizationReport> ofClassifier = utilizationReports.get(classifier);
+            if (ofClassifier.keySet().contains(date)) {
+                return Optional.of(ofClassifier.get(date));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Set<String> getClassifiers() {
+        return utilizationReports.keySet();
+    }
+
+    public Set<Date> getDates(String classifier) {
+        if (utilizationReports.keySet().contains(classifier)) {
+            return utilizationReports.get(classifier).keySet();
+        } else {
+            return new HashSet<Date>();
+        }
+    }
+
 
     @PostConstruct
     public void process() {
         Topology topo = input.getTopology();
-        Traffic traffic = input.getTraffic();
+        InputTraffic inputTraffic = input.getTraffic();
 
         Graph<String, Edge> graph = new DirectedSparseMultigraph<>();
 
@@ -50,62 +78,58 @@ public class UtilizationProcessor {
 
         DijkstraShortestPath<String, Edge> alg = new DijkstraShortestPath<>(graph, wtTransformer);
 
-
         PathReport pathReport = PathReport.builder().paths(new HashMap<>()).build();
-        Map<Date, Map<Edge, Long>> utilizationsByDate = new HashMap<>();
 
-        traffic.getEntries().keySet().forEach(date -> {
+        utilizationReports = new HashMap<>();
 
-            Map<Edge, Long> utilization = new HashMap<>();
-            utilizationsByDate.put(date, utilization);
 
-            traffic.getEntries().get(date).forEach(entry -> {
-                List<Edge> path;
+        inputTraffic.getClassified().forEach(classifiedTraffic -> {
+            Traffic traffic = classifiedTraffic.getTraffic();
+            String classifier = classifiedTraffic.getClassifier();
 
-                String az = entry.getA() + "-" + entry.getZ();
-                if (cache.containsKey(az)) {
-                    path = cache.get(az);
+            utilizationReports.put(classifier, new HashMap<>());
 
-                } else {
-                    path = alg.getPath(entry.getA(), entry.getZ());
-                    cache.put(az, path);
-                }
+            Map<Date, Map<Edge, Long>> utilizationsByDate = new HashMap<>();
+            // for each date in classifier
+            traffic.getEntries().keySet().forEach(date -> {
+                log.info("processing cls: " + classifier + " date:" + date);
+                Map<Edge, Long> edgeUtilForDate = new HashMap<>();
 
-                if (path.size() > 0) {
-                    for (Edge edge : path) {
-                        if (utilization.containsKey(edge)) {
-                            utilization.put(edge, utilization.get(edge) + entry.getMbps());
-                        } else {
-                            utilization.put(edge, entry.getMbps());
-                        }
+                traffic.getEntries().get(date).forEach(entry -> {
+                    List<Edge> path;
+                    String az = entry.getA() + "-" + entry.getZ();
+                    if (cache.containsKey(az)) {
+                        path = cache.get(az);
+
+                    } else {
+                        path = alg.getPath(entry.getA(), entry.getZ());
+                        cache.put(az, path);
                     }
-                    pathReport.getPaths().put(az, path);
-                }
+
+                    if (path.size() > 0) {
+                        for (Edge edge : path) {
+                            if (edgeUtilForDate.containsKey(edge)) {
+                                edgeUtilForDate.put(edge, edgeUtilForDate.get(edge) + entry.getMbps());
+                            } else {
+                                edgeUtilForDate.put(edge, entry.getMbps());
+                            }
+                        }
+                        pathReport.getPaths().put(az, path);
+                    }
+                    utilizationsByDate.put(date, edgeUtilForDate);
+
+                });
+                UtilizationReport report = UtilizationReport.builder()
+                        .date(date)
+                        .edges(edgeUtilForDate)
+                        .build();
+                utilizationReports.get(classifier).put(date, report);
+
+                // end for each date in classifier
             });
-        });
-
-        List<UtilizationReport> reports = new ArrayList<>();
-
-        utilizationsByDate.keySet().forEach(date -> {
-            Map<Edge, Long> utilization = utilizationsByDate.get(date);
-            exporter.export(date, utilization);
-
-            UtilizationReport report = UtilizationReport.builder()
-                    .date(date)
-                    .edges(new HashMap<>())
-                    .build();
-            reports.add(report);
-
-
-            for (Edge edge : utilization.keySet()) {
-                String az = edge.getA() +" - "+ edge.getZ();
-                Long bw = utilization.get(edge);
-                report.getEdges().put(az, bw);
-            }
 
         });
 
-        reporter.saveReports(reports, pathReport);
 
     }
 
