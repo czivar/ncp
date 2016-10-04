@@ -2,8 +2,10 @@ package net.es.ncp.viz;
 
 import edu.mines.jtk.awt.ColorMap;
 
+import net.es.ncp.pop.Input;
 import net.es.ncp.report.UtilizationReport;
 import net.es.ncp.topo.Edge;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class VizExporter {
+    @Autowired
+    private Input input;
 
     public VizGraph vizGraph(UtilizationReport report) {
 
@@ -95,6 +99,13 @@ public class VizExporter {
         String title = shorten(ingress);
 
         VizNode n = VizNode.builder().id(node).label(node).title(title).value(ingress.intValue()).build();
+        if (input.getPositions().keySet().contains(node)) {
+            n.setFixed(new HashMap<>());
+            n.getFixed().put("x", true);
+            n.getFixed().put("y", true);
+            n.setX(input.getPositions().get(node).getX());
+            n.setY(input.getPositions().get(node).getY());
+        }
         g.getNodes().add(n);
     }
 

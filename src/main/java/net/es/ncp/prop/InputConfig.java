@@ -25,4 +25,6 @@ public class InputConfig {
     private File traffic;
     private Boolean randomTraffic;
 
+    private File positions;
+
 }

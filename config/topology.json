@@ -49,7 +49,9 @@
     "AMST", 
     "LOND", 
     "CERN", 
-    "GA"
+    "GA", 
+    "CERN-272", 
+    "CERN-513"
   ], 
   "edges": [
     {
@@ -1428,6 +1430,46 @@
       "z_addr": "", 
       "z": "GA", 
       "name": "GA - SAND", 
+      "isis_cost": 3.0, 
+      "mbps": 1, 
+      "a_addr": ""
+    }, 
+    {
+      "a": "CERN-272", 
+      "latency": 3.0, 
+      "z_addr": "", 
+      "z": "CERN", 
+      "name": "CERN-272 - CERN", 
+      "isis_cost": 3.0, 
+      "mbps": 1, 
+      "a_addr": ""
+    }, 
+    {
+      "a": "CERN", 
+      "latency": 3.0, 
+      "z_addr": "", 
+      "z": "CERN-272", 
+      "name": "CERN-272 - CERN", 
+      "isis_cost": 3.0, 
+      "mbps": 1, 
+      "a_addr": ""
+    }, 
+    {
+      "a": "CERN-513", 
+      "latency": 3.0, 
+      "z_addr": "", 
+      "z": "CERN", 
+      "name": "CERN-513 - CERN", 
+      "isis_cost": 3.0, 
+      "mbps": 1, 
+      "a_addr": ""
+    }, 
+    {
+      "a": "CERN", 
+      "latency": 3.0, 
+      "z_addr": "", 
+      "z": "CERN-513", 
+      "name": "CERN-513 - CERN", 
       "isis_cost": 3.0, 
       "mbps": 1, 
       "a_addr": ""

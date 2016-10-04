@@ -1,12 +1,10 @@
 package net.es.ncp.pop;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.es.ncp.in.ClassifiedTraffic;
-import net.es.ncp.in.InputEdge;
-import net.es.ncp.in.InputTopo;
-import net.es.ncp.in.InputTraffic;
+import net.es.ncp.in.*;
 import net.es.ncp.topo.Edge;
 import net.es.ncp.topo.EdgeMetric;
 import net.es.ncp.topo.Topology;
@@ -18,6 +16,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -28,6 +27,9 @@ public class Input {
 
     private Topology topology;
     private InputTraffic traffic;
+
+    private Map<String, Position> positions;
+
 
     @Autowired
     private RandomTrafficMaker randomTrafficMaker;
@@ -70,6 +72,11 @@ public class Input {
             File trafficFile = inputConfig.getTraffic();
             traffic = mapper.readValue(trafficFile, InputTraffic.class);
         }
+
+
+        File positionsFile = inputConfig.getPositions();
+        positions = mapper.readValue(positionsFile, new TypeReference< Map<String, Position>>() {});
+        log.info("positions imported for devices: " + positions.size());
 
 
     }

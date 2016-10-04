@@ -6,8 +6,10 @@
 <head>
     <title>ESnet6 utilization projection visualization</title>
 
+    <script th:src="@{/webjars/jquery/1.12.4/jquery.min.js}"></script>
     <script type="text/javascript" src="/vis/vis.js"></script>
     <link href="/vis/vis.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="/my.js"></script>
 
     <style type="text/css">
         #mynetwork {
@@ -24,24 +26,17 @@
 
 <div id="mynetwork"></div>
 
+<div id="positions_display"></div>
+
+<form class="form-inline" id="positions_form">
+    <button type="submit" class="btn btn-primary">Dump positions</button>
+</form>
+
+
 <script type="text/javascript" th:inline="javascript">
-    function loadJSON(callback) {
-        var url = [[${util_url}]] ;
+    var network;
 
-        var xobj = new XMLHttpRequest();
-        xobj.overrideMimeType('application/json');
-        xobj.open('GET', url, true);
-        xobj.onreadystatechange = function () {
-            if (xobj.readyState == 4) {
-                if (xobj.status == '200') {
-                    callback(xobj.responseText);
-                }
-            }
-        };
-        xobj.send(null);
-    }
-
-    loadJSON(function (response) {
+    loadJSON([[${util_url}]], function (response) {
         /*<![CDATA[*/
         // need CDATA for lt , gt
         // Parse JSON string into object
@@ -74,7 +69,7 @@
             nodes: nodes,
             edges: edges
         };
-        var network = new vis.Network(container, data, options);
+        network = new vis.Network(container, data, options);
 
         network.on('dragEnd', function (params) {
             for (var i = 0; i < params.nodes.length; i++) {
@@ -91,7 +86,20 @@
         });
         /*]]>*/
     });
+
+    $('#positions_form').on('submit', function (e) {
+        e.preventDefault();
+        var pos = network.getPositions();
+        var jsonText = JSON.stringify(pos, null);
+        $('#positions_display').text(jsonText);
+        return false;
+
+    });
+    $('#positions_form').hide();
+
 </script>
+
+
 
 
 </body>
