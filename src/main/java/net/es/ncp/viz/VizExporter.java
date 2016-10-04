@@ -2,6 +2,7 @@ package net.es.ncp.viz;
 
 import edu.mines.jtk.awt.ColorMap;
 
+import lombok.extern.slf4j.Slf4j;
 import net.es.ncp.pop.Input;
 import net.es.ncp.report.UtilizationReport;
 import net.es.ncp.topo.Edge;
@@ -15,63 +16,51 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class VizExporter {
     @Autowired
     private Input input;
 
     public VizGraph vizGraph(UtilizationReport report) {
+        log.info("exporting report " + report.getDate());
 
         VizGraph g = VizGraph.builder().edges(new ArrayList<>()).nodes(new ArrayList<>()).build();
 
         List<String> seenNodes = new ArrayList<>();
-        Double minBw = Double.MAX_VALUE;
-        Double maxBw = 0.0;
         Map<Edge, Long> utilization = report.getEdges();
+        Map<String, Long> nodeIngresses = report.getNodeIngresses();
 
-        Map<String, Double> nodeIngresses = new HashMap<>();
-        for (Edge edge : utilization.keySet()) {
-            Double bw = utilization.get(edge).doubleValue();
-
-            String a = edge.getA();
-
-            Double nodeIngress = bw;
-            if (nodeIngresses.keySet().contains(a)) {
-                nodeIngress += nodeIngresses.get(a);
-            }
-            nodeIngresses.put(a, nodeIngress);
-
-            if (bw > maxBw) {
-                maxBw = bw;
-            }
-            if (bw < minBw) {
-                minBw = bw;
-            }
-        }
 
         List<Edge> sorted = utilization.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getValue))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        List<Edge> top40 = sorted.subList(sorted.size()-40, sorted.size());
 
 
+        List<Edge> top40 = sorted.subList(sorted.size() - 40, sorted.size());
 
+        Double minBw = utilization.get(top40.get(0)).doubleValue();
+        Double maxBw = utilization.get(top40.get(top40.size() - 1)).doubleValue();
+
+        log.info("min / max bw " + minBw + " " + maxBw);
         java.awt.image.IndexColorModel icm = ColorMap.JET;
         ColorMap ecm = new ColorMap(minBw, maxBw, icm);
-
 
 
         utilization.keySet().forEach(edge -> {
             Long value = utilization.get(edge);
             String a = edge.getA();
             String z = edge.getZ();
-            this.makeNode(a, seenNodes, nodeIngresses, g);
-            this.makeNode(z, seenNodes, nodeIngresses, g);
+            Long aIngress = nodeIngresses.get(a);
+            Long zIngress = nodeIngresses.get(z);
+
+            this.makeNode(a, seenNodes, aIngress, g);
+            this.makeNode(z, seenNodes, zIngress, g);
 
             String rgb = this.toWeb(ecm.getColor(value.doubleValue()));
             String title = shorten(value.doubleValue());
-            String label= "";
+            String label = "";
             if (top40.contains(edge)) {
                 label = title;
             }
@@ -87,15 +76,17 @@ public class VizExporter {
 
     }
 
-    private void makeNode(String node, List<String> seenNodes, Map<String, Double> nodeIngresses, VizGraph g) {
+    private void makeNode(String node, List<String> seenNodes, Long nodeIngress, VizGraph g) {
         if (seenNodes.contains(node)) {
             return;
         }
-        seenNodes.add(node);
-        Double ingress = 0.0;
-        if (nodeIngresses.keySet().contains(node)) {
-            ingress = nodeIngresses.get(node);
+        if (nodeIngress == null) {
+            nodeIngress = 0L;
         }
+
+        seenNodes.add(node);
+        Double ingress = nodeIngress.doubleValue();
+        log.info("node " + node + " ingress: " + nodeIngress);
         String title = shorten(ingress);
 
         VizNode n = VizNode.builder().id(node).label(node).title(title).value(ingress.intValue()).build();

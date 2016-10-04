@@ -16,4 +16,5 @@ import java.util.Map;
 public class UtilizationReport {
     private Date date;
     private Map<Edge, Long> edges;
+    private Map<String, Long> nodeIngresses;
 }

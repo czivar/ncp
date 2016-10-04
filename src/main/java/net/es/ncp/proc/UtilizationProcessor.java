@@ -89,13 +89,14 @@ public class UtilizationProcessor {
 
             utilizationReports.put(classifier, new HashMap<>());
 
-            Map<Date, Map<Edge, Long>> utilizationsByDate = new HashMap<>();
             // for each date in classifier
             traffic.getEntries().keySet().forEach(date -> {
                 log.info("processing cls: " + classifier + " date:" + date);
                 Map<Edge, Long> edgeUtilForDate = new HashMap<>();
+                Map<String, Long> nodeIngresses = new HashMap<>();
 
                 traffic.getEntries().get(date).forEach(entry -> {
+
                     List<Edge> path;
                     String az = entry.getA() + "-" + entry.getZ();
                     if (cache.containsKey(az)) {
@@ -116,12 +117,19 @@ public class UtilizationProcessor {
                         }
                         pathReport.getPaths().put(az, path);
                     }
-                    utilizationsByDate.put(date, edgeUtilForDate);
+
+                    Long ingress_bw = entry.getMbps();
+                    if (nodeIngresses.keySet().contains(entry.getA())) {
+                        ingress_bw = ingress_bw + nodeIngresses.get(entry.getA()) + entry.getMbps();
+                    }
+                    nodeIngresses.put(entry.getA(), ingress_bw);
+
 
                 });
                 UtilizationReport report = UtilizationReport.builder()
                         .date(date)
                         .edges(edgeUtilForDate)
+                        .nodeIngresses(nodeIngresses)
                         .build();
                 utilizationReports.get(classifier).put(date, report);
 
