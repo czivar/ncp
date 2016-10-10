@@ -16,6 +16,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -26,7 +27,7 @@ public class Input {
     private InputConfig inputConfig;
 
     private Topology topology;
-    private InputTraffic traffic;
+    private Map<String, List<DateTraffic>> traffic;
 
     private Map<String, Position> positions;
 
@@ -70,7 +71,8 @@ public class Input {
             traffic = randomTrafficMaker.generate(topology.getDevices());
         } else {
             File trafficFile = inputConfig.getTraffic();
-            traffic = mapper.readValue(trafficFile, InputTraffic.class);
+            TypeReference tr = new TypeReference<Map<String, List<DateTraffic>>>(){};
+            traffic = mapper.readValue(trafficFile, tr);
         }
 
 

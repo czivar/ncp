@@ -5,8 +5,8 @@ import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import lombok.extern.slf4j.Slf4j;
-import net.es.ncp.in.InputTraffic;
-import net.es.ncp.in.Traffic;
+import net.es.ncp.in.DateTraffic;
+import net.es.ncp.in.Entry;
 import net.es.ncp.report.PathReport;
 import net.es.ncp.report.UtilizationReport;
 import net.es.ncp.topo.Edge;
@@ -35,14 +35,21 @@ public class UtilizationProcessor {
         return pathReport;
     }
 
-    private Map<String, Map<Date, UtilizationReport>> utilizationReports;
+    private Map<String, List<UtilizationReport>> utilizationReports;
+
+    public Map<String, List<UtilizationReport>> getReports() {
+        return utilizationReports;
+    }
 
     public Optional<UtilizationReport> getReport(String classifier, Date date) {
         if (utilizationReports.keySet().contains(classifier)) {
-            Map<Date, UtilizationReport> ofClassifier = utilizationReports.get(classifier);
-            if (ofClassifier.keySet().contains(date)) {
-                return Optional.of(ofClassifier.get(date));
+            List<UtilizationReport> ofClassifier = utilizationReports.get(classifier);
+            for (UtilizationReport report : ofClassifier) {
+                if (report.getDate().equals(date)) {
+                    return Optional.of(report);
+                }
             }
+            return Optional.empty();
         }
         return Optional.empty();
     }
@@ -52,18 +59,22 @@ public class UtilizationProcessor {
     }
 
     public Set<Date> getDates(String classifier) {
+        Set<Date> dates = new HashSet<>();
         if (utilizationReports.keySet().contains(classifier)) {
-            return utilizationReports.get(classifier).keySet();
-        } else {
-            return new HashSet<Date>();
+            List<UtilizationReport> ofClassifier = utilizationReports.get(classifier);
+            for (UtilizationReport report : ofClassifier) {
+                dates.add(report.getDate());
+            }
         }
+        return dates;
     }
+
 
 
     @PostConstruct
     public void process() {
         Topology topo = input.getTopology();
-        InputTraffic inputTraffic = input.getTraffic();
+        Map<String, List<DateTraffic>> inputTraffic = input.getTraffic();
 
         Graph<String, Edge> graph = new DirectedSparseMultigraph<>();
 
@@ -83,19 +94,23 @@ public class UtilizationProcessor {
         utilizationReports = new HashMap<>();
 
 
-        inputTraffic.getClassified().forEach(classifiedTraffic -> {
-            Traffic traffic = classifiedTraffic.getTraffic();
-            String classifier = classifiedTraffic.getClassifier();
+        inputTraffic.keySet().forEach(classifier-> {
+            List<DateTraffic> dateTraffics = inputTraffic.get(classifier);
 
-            utilizationReports.put(classifier, new HashMap<>());
+
+            utilizationReports.put(classifier, new ArrayList<>());
 
             // for each date in classifier
-            traffic.getEntries().keySet().forEach(date -> {
+            dateTraffics.forEach(dateTraffic -> {
+                Date date = dateTraffic.getDate();
+                String comment = dateTraffic.getComment();
+
+                List<Entry> entries = dateTraffic.getEntries();
                 log.info("processing cls: " + classifier + " date:" + date);
                 Map<Edge, Long> edgeUtilForDate = new HashMap<>();
                 Map<String, Long> nodeIngresses = new HashMap<>();
 
-                traffic.getEntries().get(date).forEach(entry -> {
+                entries.forEach(entry -> {
 
                     List<Edge> path;
                     String az = entry.getA() + "-" + entry.getZ();
@@ -128,10 +143,11 @@ public class UtilizationProcessor {
                 });
                 UtilizationReport report = UtilizationReport.builder()
                         .date(date)
+                        .comment(comment)
                         .edges(edgeUtilForDate)
                         .nodeIngresses(nodeIngresses)
                         .build();
-                utilizationReports.get(classifier).put(date, report);
+                utilizationReports.get(classifier).add(report);
 
                 // end for each date in classifier
             });

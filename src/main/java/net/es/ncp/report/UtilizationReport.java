@@ -15,6 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class UtilizationReport {
     private Date date;
+    private String comment;
     private Map<Edge, Long> edges;
     private Map<String, Long> nodeIngresses;
 }

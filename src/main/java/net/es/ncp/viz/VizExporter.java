@@ -43,7 +43,7 @@ public class VizExporter {
         Double minBw = utilization.get(top40.get(0)).doubleValue();
         Double maxBw = utilization.get(top40.get(top40.size() - 1)).doubleValue();
 
-        log.info("min / max bw " + minBw + " " + maxBw);
+        // log.info("min / max bw " + minBw + " " + maxBw);
         java.awt.image.IndexColorModel icm = ColorMap.JET;
         ColorMap ecm = new ColorMap(minBw, maxBw, icm);
 
@@ -60,10 +60,11 @@ public class VizExporter {
 
             String rgb = this.toWeb(ecm.getColor(value.doubleValue()));
             String title = shorten(value.doubleValue());
-            String label = "";
+            String label = title;
+            /*
             if (top40.contains(edge)) {
-                label = title;
             }
+            */
 
             VizEdge ve = VizEdge.builder()
                     .from(a).to(z).title(title).label(label).value(value.intValue())
@@ -86,7 +87,7 @@ public class VizExporter {
 
         seenNodes.add(node);
         Double ingress = nodeIngress.doubleValue();
-        log.info("node " + node + " ingress: " + nodeIngress);
+        // log.info("node " + node + " ingress: " + nodeIngress);
         String title = shorten(ingress);
 
         VizNode n = VizNode.builder().id(node).label(node).title(title).value(ingress.intValue()).build();

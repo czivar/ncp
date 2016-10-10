@@ -36,11 +36,18 @@ public class MainController {
     public String main_page(Model model) {
         List<Map<String, String>> tuples = new ArrayList<>();
 
-        processor.getClassifiers().forEach(c -> {
-            processor.getDates(c).forEach(date -> {
+        Map<String, List<UtilizationReport>> reports = processor.getReports();
+
+
+        reports.keySet().forEach(c -> {
+            reports.get(c).forEach(report -> {
+                Date date  = report.getDate();
+                String comment = report.getComment();
+
                 Map<String, String> tuple = new HashMap();
                 tuple.put("href", "classifier/" + c + "/timestamp/" + date.getTime());
                 tuple.put("text", c + " - " + date.toString());
+                tuple.put("comment", comment);
                 tuples.add(tuple);
             });
 

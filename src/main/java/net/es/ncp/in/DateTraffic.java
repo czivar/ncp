@@ -7,13 +7,15 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClassifiedTraffic {
-    private Traffic traffic;
-    private String classifier;
+public class DateTraffic {
+    private Date date;
+    private String comment;
+
+    private List<Entry> entries;
 }

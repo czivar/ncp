@@ -2,10 +2,8 @@ package net.es.ncp.pop;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.es.ncp.in.ClassifiedTraffic;
 import net.es.ncp.in.Entry;
-import net.es.ncp.in.InputTraffic;
-import net.es.ncp.in.Traffic;
+import net.es.ncp.in.DateTraffic;
 import net.es.ncp.prop.RandomizingConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,11 +18,8 @@ public class RandomTrafficMaker {
     private RandomizingConfig config;
 
 
-    public InputTraffic generate(List<String> nodes) {
-
-        Traffic traffic = Traffic.builder()
-                .entries(new HashMap<>())
-                .build();
+    public Map<String, List<DateTraffic>>  generate(List<String> nodes) {
+        Map<String, List<DateTraffic>> traffic = new HashMap<>();
 
         Random r = new Random();
         Long range = config.getMaxTrafficMbps();
@@ -42,8 +37,9 @@ public class RandomTrafficMaker {
             dates.add(randomDate);
         }
 
+        List<DateTraffic> dtls = new ArrayList<>();
         dates.forEach(date -> {
-            traffic.getEntries().put(date, new ArrayList<>());
+            DateTraffic dt = DateTraffic.builder().date(date).comment("some comment").entries(new ArrayList<>()).build();
 
 
             nodes.forEach(n1 -> {
@@ -51,21 +47,17 @@ public class RandomTrafficMaker {
                     long mbps = (long) (r.nextDouble() * range);
 
                     Entry e = Entry.builder().a(n1).z(n2).mbps(mbps).build();
-                    traffic.getEntries().get(date).add(e);
+                    dt.getEntries().add(e);
 
                 });
             });
+            dtls.add(dt);
         });
 
-        ClassifiedTraffic classified = ClassifiedTraffic.builder()
-                .classifier("random")
-                .traffic(traffic)
-                .build();
+        traffic.put("random", dtls);
 
-        InputTraffic inputTraffic = InputTraffic.builder().classified(new ArrayList<>()).build();
-        inputTraffic.getClassified().add(classified);
 
-        return inputTraffic;
+        return traffic;
 
     }
 
