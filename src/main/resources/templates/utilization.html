@@ -5,7 +5,8 @@
 
 <head>
     <title>ESnet6 utilization projection visualization</title>
-
+    <link th:href="@{/webjars/bootstrap/3.3.7-1/css/bootstrap.min.css}" rel="stylesheet"/>
+    <script th:src="@{/webjars/bootstrap/3.3.7-1/js/bootstrap.min.js}" type="text/javascript"></script>
     <script th:src="@{/webjars/jquery/1.12.4/jquery.min.js}"></script>
     <script type="text/javascript" src="/vis/vis.js"></script>
     <link href="/vis/vis.css" rel="stylesheet" type="text/css"/>
@@ -26,10 +27,27 @@
 
 <div id="mynetwork"></div>
 
-<div id="positions_display"></div>
+<div id ="bw_report" style="width: 300px;">
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th style="width: 150px;">A</th>
+        <th style="width: 200px;">Z</th>
+        <th style="width: 200px;">Mbps</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${entries}">
+        <td th:text="${entry.a}"/>
+        <td th:text="${entry.z}"/>
+        <td th:text="${entry.mbps}"/>
+    </tr>
+    </tbody>
+</table>
+</div>
 
-<form class="form-inline" id="positions_form">
-    <button type="submit" class="btn btn-primary">Dump positions</button>
+<form class="form-inline" id="report_form">
+    <button type="submit" class="btn btn-primary">Show report</button>
 </form>
 
 
@@ -87,15 +105,15 @@
         /*]]>*/
     });
 
-    $('#positions_form').on('submit', function (e) {
+    $('#bw_report').hide();
+
+    $('#report_form').on('submit', function (e) {
         e.preventDefault();
-        var pos = network.getPositions();
-        var jsonText = JSON.stringify(pos, null);
-        $('#positions_display').text(jsonText);
+        $('#bw_report').show();
+        $('#report_form').hide();
         return false;
 
     });
-    $('#positions_form').hide();
 
 </script>
 

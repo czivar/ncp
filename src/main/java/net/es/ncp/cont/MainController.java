@@ -1,8 +1,10 @@
 package net.es.ncp.cont;
 
 import lombok.extern.slf4j.Slf4j;
+import net.es.ncp.in.Entry;
 import net.es.ncp.proc.UtilizationProcessor;
 import net.es.ncp.report.UtilizationReport;
+import net.es.ncp.topo.Edge;
 import net.es.ncp.viz.VizExporter;
 import net.es.ncp.viz.VizGraph;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +55,23 @@ public class MainController {
     public String utilization(@PathVariable String classifier, @PathVariable Long timestamp, Model model) {
 
         String util_url = "/report/"+classifier+"/"+timestamp.toString();
+        Date date = new Date(timestamp);
 
         model.addAttribute("util_url", util_url);
+
+        List<Entry> entries = new ArrayList<>();
+        Optional<UtilizationReport> opt = processor.getReport(classifier, date);
+        if (opt.isPresent()) {
+
+            Map<Edge, Long> edges = opt.get().getEdges();
+            for (Edge edge : edges.keySet()) {
+                Long mbps = edges.get(edge);
+                Entry entry = Entry.builder().a(edge.getA()).z(edge.getZ()).mbps(mbps).build();
+                entries.add(entry);
+            }
+        }
+
+        model.addAttribute("entries", entries);
         return "utilization";
     }
 
