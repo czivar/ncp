@@ -13,7 +13,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.io.CsvMapWriter;
+import org.supercsv.io.ICsvBeanWriter;
+import org.supercsv.io.ICsvMapWriter;
+import org.supercsv.prefs.CsvPreference;
 
+import javax.servlet.http.HttpServletResponse;
+import java.awt.print.Book;
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -82,6 +90,47 @@ public class MainController {
         return "utilization";
     }
 
+    @RequestMapping("/csv/classifier/{classifier}/timestamp/{timestamp}")
+    public void downloadCSV(@PathVariable String classifier, @PathVariable Long timestamp, HttpServletResponse response) throws IOException {
+
+        Date date = new Date(timestamp);
+
+        String csvFileName = classifier+ "_"+date.toString()+".csv";
+
+        response.setContentType("text/csv");
+
+        // creates mock data
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"",
+                csvFileName);
+        response.setHeader(headerKey, headerValue);
+
+
+
+        // uses the Super CSV API to generate CSV data from the model data
+        ICsvMapWriter csvWriter = new CsvMapWriter(response.getWriter(), CsvPreference.STANDARD_PREFERENCE);
+
+        String[] header = { "a", "z", "mbps" };
+
+        csvWriter.writeHeader(header);
+
+        List<Entry> entries = new ArrayList<>();
+        Optional<UtilizationReport> opt = processor.getReport(classifier, date);
+        if (opt.isPresent()) {
+            Map<Edge, Long> edges = opt.get().getEdges();
+            for (Edge e : edges.keySet()) {
+                Map<String, Object> entry = new HashMap<String, Object>();
+                entry.put("a", e.getA());
+                entry.put("z", e.getZ());
+                entry.put("mbps", edges.get(e));
+                csvWriter.write(entry, header);
+
+            }
+        }
+
+
+        csvWriter.close();
+    }
 
     @RequestMapping(value = "/classifiers", method = RequestMethod.GET)
     @ResponseBody

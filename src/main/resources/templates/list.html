@@ -26,6 +26,12 @@
                    th:href="@{|utilization/${tuple.href}|}"
                    th:text="|${tuple.text}|"/>
             </td>
+            <td>
+                <a href="utilization"
+                   th:href="@{|csv/${tuple.href}|}">Save as CSV</a>
+            </td>
+
+
             <td th:text="${tuple.comment}"/>
         </tr>
         </tbody>
